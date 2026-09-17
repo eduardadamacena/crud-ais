@@ -8,4 +8,8 @@ export class InMemoryMesarioRepository implements MesarioRepository {
 		this.mesarios.push(mesario);
 		return mesario;
 	}
+
+	async findAll(): Promise<Mesario[]> {
+		return [...this.mesarios];
+	}
 }
