@@ -5,6 +5,11 @@ export type CreateMesarioInput = {
 	secao?: string;
 };
 
+export type UpdateMesarioInput = Partial<Pick<CreateMesarioInput, "nome" | "cpf">> & {
+	zona?: string | null;
+	secao?: string | null;
+};
+
 export type Mesario = CreateMesarioInput & {
 	id: string;
 	createdAt: string;

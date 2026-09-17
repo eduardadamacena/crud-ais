@@ -8,6 +8,25 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      POSTGRES_DB: mesarios_test
+      POSTGRES_USER: mesarios_test
+      POSTGRES_PASSWORD: test_password
+      DATABASE_URL: "postgresql://mesarios_test:test_password@127.0.0.1:5432/mesarios_test?schema=public"
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: mesarios_test
+          POSTGRES_USER: mesarios_test
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U mesarios_test -d mesarios_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout
@@ -25,6 +44,12 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
+      - name: Migrate test database
+        run: npm run db:migrate
+
+      - name: Test API
+        run: npm test
+
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.2.2
         with:
@@ -32,6 +57,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            set -e
             cd /var/www/my-app
 
             git pull origin main
@@ -39,5 +65,9 @@ jobs:
             npm ci
 
             npm run build
+
+            docker compose up -d --wait postgres
+
+            npm run db:migrate
 
             pm2 restart my-app

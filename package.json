@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
-    "build": "tsc"
+    "build": "npm run prisma:generate && tsc",
+    "predev": "prisma generate",
+    "prisma:generate": "prisma generate",
+    "db:migrate": "npm run prisma:generate && node scripts/migrate.cjs",
+    "test": "tsx --test test/*.test.ts"
   },
   "keywords": [],
   "author": "",
@@ -14,7 +18,12 @@
   "type": "commonjs",
   "devDependencies": {
     "@types/node": "^22.20.3",
+    "prisma": "6.19.3",
     "tsx": "^4.23.13",
     "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3",
+    "dotenv": "^17.4.2"
   }
 }

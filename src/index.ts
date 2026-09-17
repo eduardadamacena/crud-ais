@@ -1,15 +1,26 @@
+import "dotenv/config";
 import { createServer } from "node:http";
+import { PrismaClient } from "@prisma/client";
 import { CreateMesario } from "./application/use-cases/create-mesario.js";
+import { UpdateMesario } from "./application/use-cases/update-mesario.js";
 import { MesarioController } from "./adapters/http/mesario.controller.js";
-import { InMemoryMesarioRepository } from "./infrastructure/repositories/in-memory-mesario.repository.js";
+import { PrismaMesarioRepository } from "./infrastructure/repositories/prisma-mesario.repository.js";
 
 const port = Number(process.env.PORT) || 3000;
 
-const repository = new InMemoryMesarioRepository();
+const prisma = new PrismaClient();
+const repository = new PrismaMesarioRepository(prisma);
 const createMesario = new CreateMesario(repository);
-const controller = new MesarioController(createMesario);
+const updateMesario = new UpdateMesario(repository);
+const controller = new MesarioController(createMesario, updateMesario);
 const server = createServer((request, response) => controller.handle(request, response));
 
-server.listen(port, () => {
-	console.log(`Servidor rodando em http://localhost:${port}`);
+prisma.$connect().then(() => {
+	server.listen(port, () => {
+		console.log(`Servidor rodando em http://localhost:${port}`);
+	});
+}).catch((error: unknown) => {
+	console.error("Não foi possível conectar ao PostgreSQL", error);
+	process.exitCode = 1;
+	void prisma.$disconnect();
 });
