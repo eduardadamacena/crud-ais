@@ -1,0 +1,36 @@
+name: Build and Release TypeScript
+
+on:
+  push:
+    tags: [ 'v*.*.*' ]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Ou a versão desejada do Node.js
+          cache: 'npm'       # Ou 'pnpm' / 'yarn' dependendo do gerenciador
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Package build artifacts
+        run: zip -r build.zip dist/ # Compacta os arquivos compilados (da pasta dist/ ou build/)
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build.zip
+          generate_release_notes: true
